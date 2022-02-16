@@ -6,9 +6,7 @@
 #   	* python -m pip install opencv-contrib-python
 #   	* python -m pip install numpy
 # 		* python -m pip install keyboard
-#		* python -m pip install pyttsx3
 #   	* python -m pip install win32con
-#		* python -m pip install shutil
 # --------------------------------------------------------------------------------------------------------------------------
 from keras.models import load_model
 from keras.preprocessing import image
@@ -28,15 +26,12 @@ import winGuiAuto
 import win32gui
 import win32con
 import keyboard
-import pyttsx3
-import shutil
 
 # --------------------------------------------------------------------------------------------------------------------------
 #	INIT THE GLOBAL DATA
-#	You need to initialize the UIengine of pyttsx3, the global varibale index with 0 & the height & width of the images
+#	You need to initialize the global varibale index with 0 & the height & width of the images
 # --------------------------------------------------------------------------------------------------------------------------
 index = 0
-UIengine = pyttsx3.init()
 image_height, image_width = 64, 64
 
 # --------------------------------------------------------------------------------------------------------------------------
@@ -63,7 +58,7 @@ def imagesSearchInFile():
 # --------------------------------------------------------------------------------------------------------------------------
 def openTemplateImage():
     cv2.namedWindow("Template", cv2.WINDOW_NORMAL)
-    image = cv2.imread('template.png')
+    image = cv2.imread('images/template.png')
     cv2.imshow("Template", image)
     cv2.setWindowProperty(
         "Template", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
@@ -92,7 +87,7 @@ def controlTimer(self):
 #	 Returns the predicted letter after comparing the read image with the prediction register with SIFT
 # --------------------------------------------------------------------------------------------------------------------------
 def prediction():
-    test_image = image.load_img('prediction.png', target_size=(64, 64))
+    test_image = image.load_img('images/prediction.png', target_size=(64, 64))
     test_image = image.img_to_array(test_image)
     test_image = np.expand_dims(test_image, axis=0)
     results = classifier.predict(test_image)
@@ -100,7 +95,7 @@ def prediction():
     files = imagesSearchInFile()
     for i in range(len(files)):
         image_to_compare = cv2.imread("./SampleGestures/"+files[i])
-        original = cv2.imread("prediction.png")
+        original = cv2.imread("images/prediction.png")
         sift = cv2.xfeatures2d.SIFT_create()
         kp_1, desc_1 = sift.detectAndCompute(original, None)
         kp_2, desc_2 = sift.detectAndCompute(image_to_compare, None)
@@ -196,6 +191,7 @@ class Dashboard(QtWidgets.QMainWindow):
             self.timer.timeout.connect(self.startScanner)
         self.scan_sinlge.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.exit_button.clicked.connect(self.quitApplication)
+        self.img_label.setPixmap(QPixmap('images/img_bg.jpg'))
         self._layout = self.layout()
 
     def quitApplication(self):
@@ -268,7 +264,7 @@ class Dashboard(QtWidgets.QMainWindow):
             except:
                 pass
 
-            img_name = "prediction.png"
+            img_name = "images/prediction.png"
             save_img = cv2.resize(mask, (image_height, image_width))
             cv2.imwrite(img_name, save_img)
             img_text = prediction()
