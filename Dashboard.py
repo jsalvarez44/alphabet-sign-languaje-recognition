@@ -288,7 +288,6 @@ class Dashboard(QtWidgets.QMainWindow):
         uic.loadUi('UI_Files/scan_test.ui', self)
         self.setWindowTitle(self.title)
         self.pushButton_2.clicked.connect(lambda: shutDownCamera(self.cam))
-        self.linkButton.clicked.connect(openTemplateImage)
         self.go_menu.clicked.connect(self.mainMenu)
         self.scan_sinlge.clicked.connect(self.startScanner)
         if self.scan_test.clicked.connect(self.startTest):
