@@ -32,16 +32,16 @@
             <widget class="QLabel" name="label">
                 <property name="geometry">
                     <rect>
-                        <x>210</x>
+                        <x>190</x>
                         <y>170</y>
-                        <width>381</width>
+                        <width>391</width>
                         <height>31</height>
                     </rect>
                 </property>
                 <property name="font">
                     <font>
                         <family>Verdana</family>
-                        <pointsize>16</pointsize>
+                        <pointsize>11</pointsize>
                         <weight>50</weight>
                         <bold>false</bold>
                     </font>
@@ -52,7 +52,7 @@ background-color: white;
 border: 2px solid white; border-radius:10px;</string>
                 </property>
                 <property name="text">
-                    <string>Traducción en tiempo real</string>
+                    <string>Evaluación de conocimientos: Has la siguiente letra</string>
                 </property>
             </widget>
             <widget class="QTextBrowser" name="textBrowser">

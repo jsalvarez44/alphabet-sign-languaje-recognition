@@ -15,7 +15,6 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QImage
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtCore
-from PyQt5.QtCore import QTimer
 from PyQt5 import QtGui
 import numpy as np
 import sys
@@ -26,6 +25,8 @@ import winGuiAuto
 import win32gui
 import win32con
 import keyboard
+import random as rd 
+import string as st
 
 # --------------------------------------------------------------------------------------------------------------------------
 #	INIT THE GLOBAL DATA
@@ -73,13 +74,11 @@ def shutDownCamera(cam):
     cv2.destroyAllWindows()
 
 # --------------------------------------------------------------------------------------------------------------------------
-# 	FUNCTION controlTimer()
-#	Start the timer when the cam starts
+# 	FUNCTION getRandomLetter()
+#	Return a random letter of the alphabeth
 # --------------------------------------------------------------------------------------------------------------------------
-def controlTimer(self):
-    self.timer.isActive()
-    self.cam = cv2.VideoCapture(0)
-    self.timer.start(20)
+def getRandomLetter():
+    return rd.choice(st.ascii_letters).upper()
 
 # --------------------------------------------------------------------------------------------------------------------------
 #	 FUNCTION prediction()
@@ -183,21 +182,28 @@ class Dashboard(QtWidgets.QMainWindow):
         self.setWindowFlags(QtCore.Qt.WindowMinimizeButtonHint)
         self.setWindowIcon(QtGui.QIcon('icons/windowLogo.png'))
         self.title = 'Aplicación para la enseñanza del abecedario en lenguaje de señas'
-        uic.loadUi('UI_Files/dash.ui', self)
-        self.setWindowTitle(self.title)
-        self.timer = QTimer()
-        if(self.scan_sinlge.clicked.connect(self.startScanner) == True):
-            self.timer.timeout.connect(self.startScanner)
-        self.scan_sinlge.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.exit_button.clicked.connect(self.quitApplication)
-        self.img_label.setPixmap(QPixmap('images/img_bg.jpg'))
-        self._layout = self.layout()
+        self.mainMenu()
 
     def quitApplication(self):
         userReply = QMessageBox.question(
             self, 'Salir', "¿Quiere salir de la aplicación?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if userReply == QMessageBox.Yes:
             keyboard.press_and_release('alt+F4')
+            
+    def mainMenu(self):
+        try:
+            shutDownCamera(self.cam)
+        except:
+            pass
+        uic.loadUi('UI_Files/dash.ui', self)
+        self.setWindowTitle(self.title)
+        self.scan_sinlge.clicked.connect(self.startScanner)
+        self.exit_button.clicked.connect(self.quitApplication)
+        self.scan_test.clicked.connect(self.startTest)
+        self.scan_sinlge.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.scan_test.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.img_label.setPixmap(QPixmap('images/img_bg.jpg'))
+        self._layout = self.layout()
 
     def startScanner(self):
         try:
@@ -206,16 +212,16 @@ class Dashboard(QtWidgets.QMainWindow):
             pass
         uic.loadUi('UI_Files/scan_single.ui', self)
         self.setWindowTitle(self.title)
-        if(self.scan_sinlge.clicked.connect(self.startScanner)):
-            controlTimer(self)
         self.pushButton_2.clicked.connect(lambda: shutDownCamera(self.cam))
         self.linkButton.clicked.connect(openTemplateImage)
+        self.go_menu.clicked.connect(self.mainMenu)
+        if self.scan_sinlge.clicked.connect(self.startScanner):
+            self.cam = cv2.VideoCapture(0)
+        self.scan_test.clicked.connect(self.startTest)
         self.scan_sinlge.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        try:
-            self.exit_button.clicked.connect(lambda: shutDownCamera(self.cam))
-        except:
-            pass
-        self.exit_button.clicked.connect(self.quitApplication)
+        self.scan_test.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.go_menu.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+
         img_text = ''
         
         while True:
@@ -260,6 +266,82 @@ class Dashboard(QtWidgets.QMainWindow):
 
             try:
                 self.textBrowser.setText("\n\n\t"+str(img_text))
+            except:
+                pass
+
+            img_name = "images/prediction.png"
+            save_img = cv2.resize(mask, (image_height, image_width))
+            cv2.imwrite(img_name, save_img)
+            img_text = prediction()
+
+            if cv2.waitKey(1) == 27:
+                break
+
+        self.cam.release()
+        cv2.destroyAllWindows()
+    
+    def startTest(self):
+        try:
+            shutDownCamera(self.cam)
+        except:
+            pass
+        uic.loadUi('UI_Files/scan_test.ui', self)
+        self.setWindowTitle(self.title)
+        self.pushButton_2.clicked.connect(lambda: shutDownCamera(self.cam))
+        self.linkButton.clicked.connect(openTemplateImage)
+        self.go_menu.clicked.connect(self.mainMenu)
+        self.scan_sinlge.clicked.connect(self.startScanner)
+        if self.scan_test.clicked.connect(self.startTest):
+            self.cam = cv2.VideoCapture(0)
+        self.scan_sinlge.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.scan_test.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.go_menu.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+
+        img_text = ''
+        random_letter = getRandomLetter()
+        
+        while True:
+            ret, frame = self.cam.read()
+            frame = cv2.flip(frame, 1)
+            try:
+                frame = cv2.resize(frame, (321, 270))
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                img1 = cv2.rectangle(
+                    frame, (150, 50), (300, 200), (0, 255, 0), thickness=2, lineType=8, shift=0)
+            except:
+                keyboard.press_and_release('esc')
+
+            height1, width1, channel1 = img1.shape
+            step1 = channel1 * width1
+            qImg1 = QImage(img1.data, width1, height1,
+                           step1, QImage.Format_RGB888)
+
+            try:
+                self.label_3.setPixmap(QPixmap.fromImage(qImg1))
+                slider1 = self.trackbar.value()
+            except:
+                pass
+
+            lower_blue = np.array([0, 0, 0])
+            upper_blue = np.array([179, 255, slider1])
+
+            ROI = img1[52:198, 152:298]
+            HSV = cv2.cvtColor(ROI, cv2.COLOR_BGR2HSV)
+            mask = cv2.inRange(HSV, lower_blue, upper_blue)
+
+            cv2.namedWindow("mask", cv2.WINDOW_NORMAL)
+            cv2.imshow("mask", mask)
+            cv2.setWindowProperty(
+                "mask", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+            cv2.resizeWindow("mask", 118, 108)
+            cv2.moveWindow("mask", 894, 271)
+
+            hwnd = winGuiAuto.findTopWindow("mask")
+            win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 0, 0,
+                                  win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE)
+
+            try:
+                self.textBrowser.setText(f"\n\n\n\t{random_letter} | "+str(img_text))
             except:
                 pass
 
